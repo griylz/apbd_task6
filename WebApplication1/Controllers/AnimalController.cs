@@ -2,61 +2,32 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using WebApplication1.Models;
 using WebApplication1.Models.DTOs;
+using WebApplication1.Repositories;
 
 namespace WebApplication1.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class AnimalController : ControllerBase
 {
-    private readonly IConfiguration _configuration;
-    public AnimalController(IConfiguration configuration)
+    private readonly IAnimalRepository _repository;
+    public AnimalController(IAnimalRepository repository)
     {
-        _configuration = configuration;
+        _repository = repository;
     }
 
     [HttpGet]
-    public IActionResult GetAnimals()
+    public IActionResult GetAnimals(string orderBy = "Name")
     {
-    //    SqlConnection connection2 = new SqlConnection();
-    //    try
-    //    {
-    //        connection2.Open();
-    //    }
-    //    finally
-    //    {
-    //        connection2.Close();
-    //        connection2.Dispose();
-    //    }
-        
-        
-        
-        
-        
-        
-        
-        
-        //Open connection
-        using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
-        connection.Open();
-        
-        //Create command
-        SqlCommand command = new SqlCommand();
-        command.Connection = connection;
-        command.CommandText = "SELECT * FROM Animal;";
-
-        var reader = command.ExecuteReader();
-        var animals = new List<Animal>();
-        int idAnimalOrdinal = reader.GetOrdinal("IdAnimal");
-        int nameOrdinal = reader.GetOrdinal("Name");
-        while (reader.Read())
+        try
         {
-            animals.Add((new Animal()
-            {
-                IdAnimal = reader.GetInt32(idAnimalOrdinal),
-                Name = reader.GetString(nameOrdinal),
-            }));
+            var animals = _repository.GetAllAnimals(orderBy);
+            return Ok(animals);
         }
-        return Ok(animals);
+        catch (Exception ex)
+        {
+            // Log the exception details
+            return StatusCode(500, "Internal server error: " + ex.Message);
+        }
     }
 
     [HttpPost]
@@ -68,8 +39,8 @@ public class AnimalController : ControllerBase
         //Create command
         SqlCommand command = new SqlCommand();
         command.Connection = connection;
-        command.CommandText = "INSERT INTO Animal VALUES (@animalName,'','','')";
         command.Parameters.AddWithValue("@animalName", animal.Name);
+        command.CommandText = "INSERT INTO Animal VALUES (@animalName,'','','')";
         command.ExecuteNonQuery();
         //TODO: ADD TO REPOSITORY METHODS
         return Created("",null);
