@@ -10,7 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IAnimalRepository, AnimalRepository>();
 
 var app = builder.Build();
-//app.Configuration.GetConnectionString("Default");
+app.Configuration.GetConnectionString("2019SBD");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

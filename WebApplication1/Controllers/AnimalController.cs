@@ -25,24 +25,29 @@ public class AnimalController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Log the exception details
             return StatusCode(500, "Internal server error: " + ex.Message);
         }
     }
 
     [HttpPost]
-    public IActionResult AddAnimal(AddAnimal animal)
+    public IActionResult AddAnimal([FromBody] AddAnimal animalDTO)
     {
-        using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
-        connection.Open();
+        var animal = new Animal()
+        {
+            Name = animalDTO.Name,
+            Description = animalDTO.Description,
+            Area = animalDTO.Area,
+            Category = animalDTO.Category
+        };
+
+        if (_repository.AddAnimal(animal))
+        {
+            return Created("api/animals", animal);
+        } 
+        else
+        {
+            return BadRequest("Failed to add animal");
+        }
         
-        //Create command
-        SqlCommand command = new SqlCommand();
-        command.Connection = connection;
-        command.Parameters.AddWithValue("@animalName", animal.Name);
-        command.CommandText = "INSERT INTO Animal VALUES (@animalName,'','','')";
-        command.ExecuteNonQuery();
-        //TODO: ADD TO REPOSITORY METHODS
-        return Created("",null);
     }
 }

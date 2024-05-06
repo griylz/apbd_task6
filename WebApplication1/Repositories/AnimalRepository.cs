@@ -35,7 +35,7 @@ public class AnimalRepository : IAnimalRepository
                 break;
         }
 
-        using (var connection = new SqlConnection(_configuration.GetConnectionString("Default")))
+        using (var connection = new SqlConnection(_configuration.GetConnectionString("2019SBD")))
         {
             connection.Open();
             SqlCommand command = new SqlCommand();
@@ -60,10 +60,31 @@ public class AnimalRepository : IAnimalRepository
 
         return animals;
     }
-    
+
     public bool AddAnimal(Animal animal)
     {
-        throw new NotImplementedException();
+        string sqlCommand = @"
+            INSERT INTO Animal (Name, Description, Category, Area) 
+            VALUES (@Name, @Description, @Category, @Area);
+            SELECT CAST(SCOPE_IDENTITY() as int);";
+        using (var connection = new SqlConnection(_configuration.GetConnectionString("2019SBD")))
+        {
+            connection.Open();
+            using (var command = new SqlCommand(sqlCommand, connection))
+            {
+                command.Parameters.AddWithValue("@Name", animal.Name);
+                command.Parameters.AddWithValue("@Description", animal.Description ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Category", animal.Category);
+                command.Parameters.AddWithValue("@Area", animal.Area);
+
+                
+                int id = (int)command.ExecuteScalar();
+                
+                animal.IdAnimal = id;
+            }
+        }
+
+        return true;
     }
 
     public bool UpdateAnimal(Animal animal)
