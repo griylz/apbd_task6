@@ -48,6 +48,18 @@ public class AnimalController : ControllerBase
         {
             return BadRequest("Failed to add animal");
         }
-        
+    }
+
+    [HttpPut("{idAnimal}")]
+    public IActionResult UpdateAnimal(int idAnimal, [FromBody] AddAnimal animalDTO)
+    {
+        if (_repository.UpdateAnimal(idAnimal,animalDTO))
+        {
+            return Ok();
+        }
+        else
+        {
+            return BadRequest("Failed to update");
+        }
     }
 }

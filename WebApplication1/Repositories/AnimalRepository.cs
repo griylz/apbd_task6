@@ -1,5 +1,6 @@
 using Microsoft.Data.SqlClient;
 using WebApplication1.Models;
+using WebApplication1.Models.DTOs;
 
 namespace WebApplication1.Repositories;
 
@@ -38,9 +39,7 @@ public class AnimalRepository : IAnimalRepository
         using (var connection = new SqlConnection(_configuration.GetConnectionString("2019SBD")))
         {
             connection.Open();
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandText = sqlCommand;
+            SqlCommand command = new SqlCommand(sqlCommand,connection);
             using (var reader = command.ExecuteReader())
             {
                 while (reader.Read())
@@ -67,29 +66,60 @@ public class AnimalRepository : IAnimalRepository
             INSERT INTO Animal (Name, Description, Category, Area) 
             VALUES (@Name, @Description, @Category, @Area);
             SELECT CAST(SCOPE_IDENTITY() as int);";
-        using (var connection = new SqlConnection(_configuration.GetConnectionString("2019SBD")))
+        try
         {
-            connection.Open();
-            using (var command = new SqlCommand(sqlCommand, connection))
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("2019SBD")))
             {
-                command.Parameters.AddWithValue("@Name", animal.Name);
-                command.Parameters.AddWithValue("@Description", animal.Description ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@Category", animal.Category);
-                command.Parameters.AddWithValue("@Area", animal.Area);
+                connection.Open();
+                using (var command = new SqlCommand(sqlCommand, connection))
+                {
+                    command.Parameters.AddWithValue("@Name", animal.Name);
+                    command.Parameters.AddWithValue("@Description", animal.Description ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@Category", animal.Category);
+                    command.Parameters.AddWithValue("@Area", animal.Area);
 
-                
-                int id = (int)command.ExecuteScalar();
-                
-                animal.IdAnimal = id;
+
+                    int id = (int)command.ExecuteScalar();
+
+                    animal.IdAnimal = id;
+                }
             }
-        }
 
-        return true;
+            return true;
+        }catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return false;
+        }
     }
 
-    public bool UpdateAnimal(Animal animal)
+    public bool UpdateAnimal(int id,AddAnimal animal)
     {
-        throw new NotImplementedException();
+        string sqlCommand = @"UPDATE Animal 
+        SET Name = @Name, Description = @Description, Category = @Category, Area = @Area
+        WHERE IdAnimal = @IdAnimal;";
+        try
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("2019SBD")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(sqlCommand, connection))
+                {
+                    command.Parameters.AddWithValue("@IdAnimal", id);
+                    command.Parameters.AddWithValue("@Name", animal.Name);
+                    command.Parameters.AddWithValue("@Description", animal.Description ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@Category", animal.Category);
+                    command.Parameters.AddWithValue("@Area", animal.Area);
+
+                    return command.ExecuteNonQuery() > 0;
+                }
+            }
+            return true;
+        }catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return false;
+        }
     }
 
     public bool DeleteAnimal(int id)
