@@ -124,6 +124,24 @@ public class AnimalRepository : IAnimalRepository
 
     public bool DeleteAnimal(int id)
     {
-        throw new NotImplementedException();
+        string sqlCommand = @"DELETE FROM Animal WHERE IdAnimal = @IdAnimal";
+        try
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("2019SBD")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(sqlCommand, connection))
+                {
+                    command.Parameters.AddWithValue("@IdAnimal", id);
+
+                    return command.ExecuteNonQuery() > 0;
+                }
+            }
+            return true;
+        }catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return false;
+        }
     }
 }

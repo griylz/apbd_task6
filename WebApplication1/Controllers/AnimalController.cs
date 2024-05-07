@@ -62,4 +62,17 @@ public class AnimalController : ControllerBase
             return BadRequest("Failed to update");
         }
     }
+
+    [HttpDelete("{idAnimal}")]
+    public IActionResult DeleteAnimal(int idAnimal)
+    {
+        if (_repository.DeleteAnimal(idAnimal))
+        {
+            return Ok();
+        }
+        else
+        {
+            return BadRequest("Failed to update");
+        }
+    }
 }
